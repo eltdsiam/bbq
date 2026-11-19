@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BBQ লটারি</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3efe9;--panel:#fff;--ink:#241b16;--mute:#7a6b61;--line:#e2d9cf;--fire:#d6381f;--leg:#e08a12;--stage:#2a1d17;--stage-ink:#fff4e6;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17110e;--panel:#241a15;--ink:#f6ebe0;--mute:#b3a193;--line:#3a2c24;--stage:#0f0a08}}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Hind Siliguri',system-ui,sans-serif;line-height:1.5;overflow-x:hidden}
+main{max-width:720px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:2rem;margin:0 0 4px}
+.sub{color:var(--mute);margin:0 0 20px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+.panel h2{font-size:1.1rem;margin:0 0 10px}
+.names{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:480px){.names{grid-template-columns:1fr}}
+.names input{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink);font:inherit;font-size:1rem}
+button{font:inherit;font-weight:600;border:0;border-radius:12px;padding:12px 20px;cursor:pointer;background:var(--fire);color:#fff;font-size:1.05rem}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible{outline:3px solid var(--leg);outline-offset:2px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.err{color:var(--fire);font-weight:600;min-height:1.4em;margin-top:10px}
+.rule{margin:12px 0 0;color:var(--mute);font-size:.95rem}
+#draw{display:none}
+.stage{background:var(--stage);color:var(--stage-ink);border-radius:18px;padding:22px 14px;text-align:center;min-height:300px;position:relative;overflow:hidden;
+background-image:repeating-linear-gradient(90deg,transparent 0 22px,rgba(255,255,255,.04) 22px 24px),radial-gradient(ellipse at 50% 115%,rgba(240,138,36,.5),transparent 65%);transition:box-shadow .3s}
+.stage.hit-b{box-shadow:0 0 0 4px var(--fire),0 0 50px rgba(214,56,31,.7)}
+.stage.hit-l{box-shadow:0 0 0 4px var(--leg),0 0 50px rgba(224,138,18,.7)}
+.pool{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;font-size:1.25rem;margin-bottom:12px}
+.pool span.u{opacity:.18;filter:grayscale(1)}
+.pool b{font-size:.9rem;color:#e8c9ab;margin-right:4px;font-weight:600}
+.who{font-size:2.4rem;font-weight:700;min-height:3.4rem}
+.who.in{animation:drop .6s cubic-bezier(.2,1.4,.4,1)}
+.who.cd{font-size:5rem;color:var(--leg);animation:beat .9s}
+@keyframes drop{from{transform:translateY(-70px) scale(.5);opacity:0}to{transform:none;opacity:1}}
+@keyframes beat{0%{transform:scale(2);opacity:0}30%{opacity:1}100%{transform:scale(.8)}}
+.reel{margin:12px auto 0;width:min(340px,100%);height:92px;border-radius:16px;background:rgba(255,255,255,.08);border:2px solid var(--leg);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;padding:0 10px;transition:transform .08s}
+.reel.spin{border-style:dashed}
+.reel.tick{transform:scale(1.06)}
+.reel.slow{border-color:#fff;animation:pulse .5s infinite}
+@keyframes pulse{50%{box-shadow:0 0 28px rgba(255,255,255,.6)}}
+.reel.b{background:var(--fire);border:2px solid #fff;animation:land .8s}
+.reel.l{background:var(--leg);border:2px solid #fff;animation:land .8s}
+@keyframes land{0%{transform:scale(1.4) rotate(-3deg)}50%{transform:scale(.93) rotate(2deg)}100%{transform:none}}
+.status{margin-top:14px;color:#e8c9ab;min-height:1.6em;font-size:1.1rem}
+.conf{position:absolute;top:-10px;width:9px;height:14px;border-radius:2px;animation:fall 1.8s ease-in forwards;pointer-events:none}
+@keyframes fall{to{transform:translate(var(--dx),420px) rotate(720deg);opacity:0}}
+.prog{margin:12px 0 4px;color:var(--mute)}
+label.chk{display:flex;gap:6px;align-items:center;color:var(--ink);cursor:pointer}
+ol{list-style:none;margin:10px 0 0;padding:0}
+li.res{display:flex;justify-content:space-between;gap:10px;padding:10px 14px;margin-bottom:8px;border-radius:12px;background:var(--panel);border:1px solid var(--line);border-left-width:6px;animation:pop .5s cubic-bezier(.2,1.4,.4,1)}
+li.res.b{border-left-color:var(--fire)} li.res.l{border-left-color:var(--leg)}
+li.res span{font-weight:700}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>🔥 BBQ লটারি</h1>
+<p class="sub">১০ জন, ১০ পিস: ৫টা বুকের পিস আর ৫টা লেগ পিস। ভাগ্য ঠিক করবে।</p>
+
+<section id="setup">
+ <div class="panel"><h2>১০ জনের নাম</h2><div class="names" id="names"></div>
+  <p class="rule">🍗 বুকের পিস ×৫ &nbsp; 🍖 লেগ পিস ×৫<br>প্রত্যেকবার বাকি পিস থেকে র‍্যান্ডমভাবে একটা ওঠে, তাই সবার সুযোগ সমান।</p></div>
+ <div class="err" id="err"></div>
+ <div class="bar"><button id="go">লটারি শুরু করো</button>
+  <label class="chk"><input type="checkbox" id="auto" checked> অটো চলবে</label>
+  <label class="chk"><input type="checkbox" id="snd" checked> সাউন্ড</label></div>
+</section>
+
+<section id="draw">
+ <div class="stage" id="stage">
+  <div class="pool" id="pool"></div>
+  <div class="who" id="who"></div>
+  <div class="reel" id="reel">🍗 ? 🍖</div>
+  <div class="status" id="status"></div>
+ </div>
+ <div class="prog" id="prog"></div>
+ <div class="bar" style="margin:0 0 8px">
+  <button id="next" class="ghost" style="display:none">পরের জন ▶</button>
+  <button id="pause" class="ghost">⏸ থামাও</button>
+  <button id="again" class="ghost" style="display:none">নতুন লটারি</button>
+ </div>
+ <ol id="list"></ol>
+</section>
+</main>
+
+<script>
+(function(){
+var $=function(id){return document.getElementById(id)};
+var DEF=["১","২","৩","৪","৫","৬","৭","৮","৯","১০"].map(function(n){return "বন্ধু "+n});
+DEF.forEach(function(v,i){var inp=document.createElement("input");inp.value=v;inp.setAttribute("aria-label","নাম "+(i+1));$("names").appendChild(inp)});
+
+// ক্রিপ্টো র‍্যান্ডম, পক্ষপাতহীন
+function rnd(n){var lim=Math.floor(4294967296/n)*n,a=new Uint32Array(1);do{crypto.getRandomValues(a)}while(a[0]>=lim);return a[0]%n}
+function shuffle(arr){var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=rnd(i+1),t=a[i];a[i]=a[j];a[j]=t}return a}
+window.__lottery={rnd:rnd,shuffle:shuffle};
+var sleep=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
+
+var AC=null;
+function beep(f,d,v){if(!$("snd").checked)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();var o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;o.type="triangle";g.gain.value=v||.06;o.connect(g);g.connect(AC.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+d);o.stop(AC.currentTime+d)}catch(e){}}
+function fanfare(){[523,659,784,1047].forEach(function(f,i){setTimeout(function(){beep(f,.3,.09)},i*110)})}
+
+var TXT={b:"🍗 বুকের পিস",l:"🍖 লেগ পিস"};
+var paused=false,token=0,stepGo=null;
+function names(){return Array.prototype.map.call($("names").querySelectorAll("input"),function(i){return i.value.trim()}).filter(Boolean)}
+function renderPool(left){var h="";["b","l"].forEach(function(k){h+="<div><b>"+(k==="b"?"বুক":"লেগ")+"</b>";for(var i=0;i<5;i++)h+="<span class='"+(i<left[k]?"":"u")+"'>"+(k==="b"?"🍗":"🍖")+"</span>";h+="</div>"});$("pool").innerHTML=h}
+function confetti(c){var st=$("stage");for(var i=0;i<46;i++){var p=document.createElement("i");p.className="conf";p.style.left=(10+Math.random()*80)+"%";p.style.background=["#ff5a36","#ffb02e","#fff4e6",c][i%4];p.style.setProperty("--dx",(Math.random()*160-80)+"px");p.style.animationDelay=(Math.random()*.25)+"s";st.appendChild(p);setTimeout(function(e){e.remove()},2400,p)}}
+
+$("go").onclick=function(){
+ var n=names();
+ if(n.length!==10){$("err").textContent="ঠিক ১০ জনের নাম লাগবে। এখন "+n.length+" জন আছে।";return}
+ if(new Set(n).size!==10){$("err").textContent="দুজনের নাম একই। নাম আলাদা করো।";return}
+ $("err").textContent="";beep(440,.1);start(n);
+};
+$("pause").onclick=function(){paused=!paused;$("pause").textContent=paused?"▶ চালু করো":"⏸ থামাও"};
+$("next").onclick=function(){if(stepGo){var f=stepGo;stepGo=null;f()}};
+$("again").onclick=function(){token++;paused=false;$("draw").style.display="none";$("setup").style.display="block"};
+$("auto").onchange=function(){if($("auto").checked&&stepGo){var f=stepGo;stepGo=null;f()}};
+
+async function start(list){
+ var my=++token;paused=false;stepGo=null;
+ $("setup").style.display="none";$("draw").style.display="block";
+ $("list").innerHTML="";$("again").style.display="none";$("pause").style.display="";$("pause").textContent="⏸ থামাও";$("next").style.display="none";
+ var order=shuffle(list),left={b:5,l:5},n=10;
+ var st=$("stage"),w=$("who"),r=$("reel");
+ st.className="stage";r.className="reel";r.textContent="🍗 ? 🍖";renderPool(left);$("status").textContent="";$("prog").textContent="";
+ for(var c=3;c>=1;c--){w.className="who";void w.offsetWidth;w.className="who cd";w.textContent=c;beep(300+c*80,.2,.08);await sleep(900);if(my!==token)return}
+ w.className="who";w.textContent="শুরু! 🔥";fanfare();await sleep(1200);
+ for(var i=0;i<n;i++){
+  while(paused&&my===token)await sleep(200);
+  if(my!==token)return;
+  st.className="stage";r.className="reel spin";r.textContent="🍗 ? 🍖";
+  w.className="who";void w.offsetWidth;w.className="who in";w.textContent=order[i];beep(220,.25,.08);
+  $("prog").textContent=(i+1)+" / "+n+" জন";
+  $("status").textContent=""+order[i]+" এর ভাগ্য ঘুরছে...";
+  await sleep(1300);
+  // এখনই বাকি পিসের পুল থেকে সত্যিকারের র‍্যান্ডম ড্র
+  var pool=[];for(var k=0;k<left.b;k++)pool.push("b");for(k=0;k<left.l;k++)pool.push("l");
+  var res=pool[rnd(pool.length)];left[res]--;
+  var other=res==="b"?"l":"b",steps=24,cur=rnd(2)?"b":"l";
+  for(var s=0;s<steps;s++){
+   cur=s===steps-1?other:(s<steps-6?(rnd(2)?"b":"l"):(cur==="b"?"l":"b"));
+   if(s===steps-1&&cur===res)cur=other;
+   r.textContent=TXT[cur];r.classList.add("tick");beep(cur==="b"?330:260+s*6,.08,.05);
+   if(s>=steps-6)r.classList.add("slow");
+   await sleep(45+s*s*.62);r.classList.remove("tick");if(my!==token)return;
+  }
+  $("status").textContent="...আর পিসটা হলো...";await sleep(1100);if(my!==token)return;
+  r.className="reel "+res;r.textContent=TXT[res]+"!";st.className="stage hit-"+res;
+  fanfare();confetti(res==="b"?"#d6381f":"#e08a12");renderPool(left);
+  $("status").textContent=order[i]+" পেল "+TXT[res]+" 🎉";
+  var li=document.createElement("li");li.className="res "+res;li.innerHTML="<b></b><span></span>";
+  li.children[0].textContent=order[i];li.children[1].textContent=TXT[res];$("list").insertBefore(li,$("list").firstChild);
+  if(i<n-1){
+   await sleep(2000);if(my!==token)return;
+   if(!$("auto").checked){$("next").style.display="";await new Promise(function(ok){stepGo=ok});$("next").style.display="none";if(my!==token)return}
+   else await sleep(1000);
+  }
+ }
+ if(my!==token)return;
+ w.textContent="সবার পিস ঠিক! 🔥";$("status").textContent="এবার গ্রিল শুরু!";fanfare();
+ $("pause").style.display="none";$("next").style.display="none";$("again").style.display="";
+}
+})();
+</script>
+</body>
+</html>
